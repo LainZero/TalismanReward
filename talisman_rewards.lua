@@ -6,7 +6,8 @@ local modUtils = require(folderName .. "/modUtils")
 
 local settings = modUtils.getConfigHandler({
     enabledTalismanReward = true,
-    questRankCriteria = 7.0
+    questRankCriteria = 7.0,
+    rewardCounts = 1.0
 }, folderName)
 
 local fm = sdk.get_managed_singleton("snow.data.FacilityDataManager");
@@ -17,10 +18,10 @@ log.info(modName .. " loaded!")
 
 local function better_rewards(retval)
     if give_rewards == false then
-        local qlv = qm:call("getQuestLv")
-        local qlvex = qm:call("getQuestLvEx")
-        local qr = qm:call("getQuestRank_Lv")
-        local elv = qm:call("getEnemyLv")
+        local qlv = qm:call("getQuestLv");
+        local qlvex = qm:call("getQuestLvEx");
+        local qr = qm:call("getQuestRank_Lv");
+        local elv = qm:call("getEnemyLv");
 
         log.info(modName .. " qlv : " .. qlv)
         log.info(modName .. " qlvex : " .. qlvex)
@@ -31,37 +32,47 @@ local function better_rewards(retval)
         -- if (qlv + 1) >= 1 or (qlvex + 1) >= 1 or qr >= 0 then -- 集会所イベント下位(ソニックリング)
         -- if (qlv + 1) >= 0 or (qlvex + 1) >= 0 or qr >= 0 then -- 里★1 ホオズキ(自分でクリア)
         if (qlv + 1) >= tonumber(settings.data.questRankCriteria) then
-            give_rewards = true
+            give_rewards = true;
         end
     end
 end
 
 local function get_rewards(retval)
     if qm == nil then
-        fm = sdk.get_managed_singleton("snow.data.FacilityDataManager")
+        fm = sdk.get_managed_singleton("snow.data.FacilityDataManager");
         qm = sdk.get_managed_singleton("snow.QuestManager");
         dm = sdk.get_managed_singleton("snow.data.DataManager");
     end
 
     if settings.data.enabledTalismanReward then
         if give_rewards then
-            local alchemy = fm:call("getAlchemy")
-            local slots = alchemy:call("getRemainingSlotNum")
+            local alchemy = fm:call("getAlchemy");
+            local slots = alchemy:call("getRemainingSlotNum");
+            log.info(modName .. " RemainingSlot : " .. slots);
             if slots > 0 then
-                local ib = dm:call("get_PlItemBox")
-                ib:call("tryAddGameItem(snow.data.ContentsIdSystem.ItemId, System.Int32)", 68158506, 19)
-                local list = alchemy:call("getPatturnDataList"):call("ToArray")
-                alchemy:call("selectPatturn", list[3])
-                alchemy:call("addUsingItem", 68158506, 19)
-                alchemy:call("reserveAlchemy")
-                alchemy:call("invokeCycleMethod")
+                local ib = dm:call("get_PlItemBox");
+                local vp = dm:call("get_VillagePointData");
+                local num = math.min(slots, tonumber(settings.data.rewardCounts));
+                ib:call("tryAddGameItem(snow.data.ContentsIdSystem.ItemId, System.Int32)", 68158506, 19 * num);
+                vp:call("addPoint(System.UInt32)", 500 * num);
+                local list = alchemy:call("getPatturnDataList"):call("ToArray");
+                for i = num, 1, -1 do
+                    alchemy:call("selectPatturn", list[3]);
+                    alchemy:call("addUsingItem", 68158506, 19);
+                    alchemy:call("reserveAlchemy");
+                    alchemy:call("invokeCycleMethod");
+                end
             end
-            give_rewards = false
+            give_rewards = false;
         end
     end
 end
 
 sdk.hook(sdk.find_type_definition("snow.QuestManager"):get_method("setQuestClear"),
+function (args)end,
+better_rewards);
+
+sdk.hook(sdk.find_type_definition("snow.QuestManager"):get_method("setQuestClearSub"),
 function (args)end,
 better_rewards);
 
@@ -79,6 +90,10 @@ re.on_draw_ui(function()
         local changedCriteria, userQuestRankCriteria =
             imgui.slider_int("Quest Rank grater than", settings.data.questRankCriteria, 0, 7, '%d')
         settings.handleChange(changedCriteria, userQuestRankCriteria, "questRankCriteria")
+
+        local changedRewardCounts, userRewardCounts =
+            imgui.slider_int("Reward Counts", settings.data.rewardCounts, 1, 5, '%d')
+        settings.handleChange(changedRewardCounts, userRewardCounts, "rewardCounts")
 
         if not settings.isSavingAvailable then
             imgui.text(
