@@ -1,5 +1,6 @@
 local modName = "Talisman Reward"
 local folderName = modName
+local version = "Version: 2.1.3"
 local give_rewards = false
 
 local modUtils = require(folderName .. "/modUtils")
