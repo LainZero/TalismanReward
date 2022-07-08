@@ -21,14 +21,12 @@ local dm = sdk.get_managed_singleton("snow.data.DataManager");
 
 log.info(modName .. " loaded!")
 
--- if (qlv + 1) >= 4 or (qlvex + 1) >= 4 or qr >= 1 then -- 集会所上位★4(オサイズチ)
--- if (qlv + 1) >= 1 or (qlvex + 1) >= 1 or qr >= 0 then -- 集会所イベント下位(ソニックリング)
--- if (qlv + 1) >= 0 or (qlvex + 1) >= 0 or qr >= 0 then -- 里★1 ホオズキ(自分でクリア)
 local function check_rewards_on_quest_complete(retval)
     local qm = sdk.get_managed_singleton("snow.QuestManager")
     local qrlv = qm:call("getQuestRank_Lv")
     local qlvex = qm:call("getQuestLvEx")
     local qlv = qm:call("getQuestLv")
+    local is_mistery = qm:call("isMysteryQuest")
 
     log.info(modName .. " qlv : " .. qlv)
     log.info(modName .. " qlvex : " .. qlvex)
@@ -36,16 +34,15 @@ local function check_rewards_on_quest_complete(retval)
     log.info(modName .. " Criteria : " .. settings.data.questRankCriteria)
     log.info(modName .. " EX Criteria : " .. settings.data.questRankEXCriteria)
 
-    -- if qrlv >=2 and qlv>=5 then
     if (qlv + 1) >= tonumber(settings.data.questRankCriteria) then
         give_rewards = true
         talisman_level = 3
         log.info(modName .. " TalismanLv : " .. talisman_level)
-    -- elseif qlvex >= 7 or qrlv >=2 then
-    elseif (qlvex + 1) >= tonumber(settings.data.questRankEXCriteria) then
+    elseif (qlvex + 1) >= tonumber(settings.data.questRankEXCriteria) or is_mistery then
         give_rewards = true
         talisman_level = 5
         log.info(modName .. " TalismanLv : " .. talisman_level)
+        log.info(modName .. " Master Rank Quest")
     end
 end
 
@@ -68,12 +65,14 @@ end
 
 local function add_points(dm)
     local points = dm:call("get_VillagePointData")
-    points:call("addPoint", charms[talisman_level]["points"])
+    local amount = charms[talisman_level]["points"]
+    points:call("addPoint", amount)
 end
 
 local function add_tickets(dm)
     local ib = dm:call("get_PlItemBox")
-    ib:call("tryAddGameItem(snow.data.ContentsIdSystem.ItemId, System.Int32)", FRIEND_VOUCHER_ID, charms[talisman_level]["tickets"])
+    local amount = charms[talisman_level]["tickets"]
+    ib:call("tryAddGameItem(snow.data.ContentsIdSystem.ItemId, System.Int32)", FRIEND_VOUCHER_ID, amount)
 end
 
 local function refill_resources()
@@ -91,7 +90,8 @@ local function add_talismans_to_pot(retval)
         if slots > 0 then
             slots = slots - 1
             refill_resources()
-            local list = alchemy:call("getPatturnDataList"):call("ToArray")
+            local list = alchemy:call("getPatturnDataList")
+            local list_array = list:call("ToArray")
             local pattern = list[talisman_level]
             local num = math.min(slots, tonumber(settings.data.rewardCounts));
             for i = num, 1, -1 do
