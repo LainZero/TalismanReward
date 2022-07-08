@@ -39,7 +39,7 @@ local function check_rewards_on_quest_complete(retval)
     -- if qrlv >=2 and qlv>=5 then
     if (qlv + 1) >= tonumber(settings.data.questRankCriteria) then
         give_rewards = true
-        talisman_level = 5
+        talisman_level = 3
         log.info(modName .. " TalismanLv : " .. talisman_level)
     -- elseif qlvex >= 7 or qrlv >=2 then
     elseif (qlvex + 1) >= tonumber(settings.data.questRankEXCriteria) then
@@ -135,7 +135,7 @@ re.on_draw_ui(function()
                                                      '%d')
     settings.handleChange(changedCriteria, userQuestRankCriteria,
                           "questRankCriteria")
-
+    
     local changedEXCriteria, userQuestRankEXCriteria = imgui.slider_int(
                                                      "Quest Rank EX grater than",
                                                      settings.data
