@@ -23,22 +23,28 @@ log.info(modName .. " loaded!")
 
 local function check_rewards_on_quest_complete(retval)
     local qm = sdk.get_managed_singleton("snow.QuestManager")
+    local qt = qm:call("getQuestType")
     local qrlv = qm:call("getQuestRank_Lv")
-    local qlvex = qm:call("getQuestLvEx")
     local qlv = qm:call("getQuestLv")
-    local is_mistery = qm:call("isMysteryQuest")
+    local qlvex = qm:call("getQuestLvEx")
 
-    log.info(modName .. " qlv : " .. qlv)
-    log.info(modName .. " qlvex : " .. qlvex)
-    log.info(modName .. " qrlv : " .. qrlv)
-    log.info(modName .. " Criteria : " .. settings.data.questRankCriteria)
-    log.info(modName .. " EX Criteria : " .. settings.data.questRankEXCriteria)
+    local is_mystery = qm:call("isMysteryQuest")
+    local is_kingdom = qm:call("isKingdomQuest")
+
+    log.info(modName .. " QuestLv : " .. qlv)
+    log.info(modName .. " QuestLevelEx : " .. qlvex)
+    log.info(modName .. " QuestRankLevel : " .. qrlv)
+    log.info(modName .. " QuestType : " .. qt)
+    -- log.info(modName .. " isMystery : " .. tostring(is_mystery))
+    -- log.info(modName .. " isKingdom : " .. tostring(is_kingdom))
+    log.info(modName .. " Option Rank Criteria : " .. settings.data.questRankCriteria)
+    log.info(modName .. " Option Rank EX Criteria : " .. settings.data.questRankEXCriteria)
 
     if (qlv + 1) >= tonumber(settings.data.questRankCriteria) then
         give_rewards = true
         talisman_level = 3
         log.info(modName .. " TalismanLv : " .. talisman_level)
-    elseif (qlvex + 1) >= tonumber(settings.data.questRankEXCriteria) or is_mistery then
+    elseif ((qlvex + 1) >= tonumber(settings.data.questRankEXCriteria) and qt >= 2) or is_mystery or is_kingdom then
         give_rewards = true
         talisman_level = 5
         log.info(modName .. " TalismanLv : " .. talisman_level)
@@ -65,14 +71,12 @@ end
 
 local function add_points(dm)
     local points = dm:call("get_VillagePointData")
-    local amount = charms[talisman_level]["points"]
-    points:call("addPoint", amount)
+    points:call("addPoint", charms[talisman_level]["points"])
 end
 
 local function add_tickets(dm)
     local ib = dm:call("get_PlItemBox")
-    local amount = charms[talisman_level]["tickets"]
-    ib:call("tryAddGameItem(snow.data.ContentsIdSystem.ItemId, System.Int32)", FRIEND_VOUCHER_ID, amount)
+    ib:call("tryAddGameItem(snow.data.ContentsIdSystem.ItemId, System.Int32)", FRIEND_VOUCHER_ID, charms[talisman_level]["tickets"])
 end
 
 local function refill_resources()
