@@ -41,7 +41,7 @@ local function check_rewards_on_quest_complete(retval)
     give_rewards = true
     talisman_level = 3
     log.info(modName .. " TalismanLv : " .. talisman_level)
-  elseif ((qlvex + 1) >= tonumber(settings.data.questRankEXCriteria) and qt >= 2) or is_mystery or is_kingdom then
+  elseif ((qlvex + 1) >= tonumber(settings.data.questRankEXCriteria) and qt >= 1) or is_mystery or is_kingdom then
     give_rewards = true
     talisman_level = 5
     log.info(modName .. " TalismanLv : " .. talisman_level)
