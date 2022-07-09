@@ -1,6 +1,6 @@
 local modName = "Talisman Reward"
 local folderName = modName
-local version = "Version: 2.1.4"
+local version = "Version: 2.1.5"
 local give_rewards = false
 local talisman_level = 5
 local FRIEND_VOUCHER_ID = 68158506
@@ -41,7 +41,7 @@ local function check_rewards_on_quest_complete(retval)
     give_rewards = true
     talisman_level = 3
     log.info(modName .. " TalismanLv : " .. talisman_level)
-  elseif ((qlvex + 1) >= tonumber(settings.data.questRankEXCriteria) and qt >= 2) or is_mystery or is_kingdom then
+  elseif ((qlvex + 1) >= tonumber(settings.data.questRankEXCriteria) and qt >= 1) or is_mystery or is_kingdom then
     give_rewards = true
     talisman_level = 5
     log.info(modName .. " TalismanLv : " .. talisman_level)
