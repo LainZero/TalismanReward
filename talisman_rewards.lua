@@ -1,6 +1,6 @@
 local modName = "Talisman Reward"
 local folderName = modName
-local version = "Version: 2.1.4"
+local version = "Version: 2.1.5"
 local give_rewards = false
 local talisman_level = 5
 local FRIEND_VOUCHER_ID = 68158506
